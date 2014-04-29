@@ -50,6 +50,15 @@ void usage(const char *program) {
 }
 
 void daytime(const char *host, short port, bool ipv4) {
+    int sock = create_connection(host, port, ipv4);
+    FILE *f = safe_fdopen(sock, "r");
+    char buf[1000];
+    fgets(buf, sizeof(buf), f);
+    fclose(f);
+    fputs(buf, stdout);
+}
+
+int create_connection(const char *host, short port, bool ipv4) {
     int sock = safe_socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in server;
     server.sin_family = AF_INET;
@@ -57,13 +66,7 @@ void daytime(const char *host, short port, bool ipv4) {
     safe_inet_pton(AF_INET, host, &server.sin_addr);
 
     safe_connect(sock, (struct sockaddr *) &server, sizeof(server));
-
-    FILE *f = safe_fdopen(sock, "r");
-
-    char buf[1000];
-    fgets(buf, sizeof(buf), f);
-    fclose(f);
-    fputs(buf, stdout);
+    return sock;
 }
 
 int safe_socket(int domain, int type, int protocol) {
