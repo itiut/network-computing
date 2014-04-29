@@ -6,6 +6,8 @@ void usage(const char *program);
 void daytime(const char *host, short port, bool ipv4);
 
 int create_connection(const char *host, short port, bool ipv4);
+int create_ipv4_connection(const char *host, short port);
+int create_ipv6_connection(const char *host, short port);
 
 int safe_socket(int domain, int type, int protocol);
 void safe_inet_pton(int af, const char *src, void *dst);
