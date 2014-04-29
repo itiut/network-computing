@@ -2,7 +2,7 @@ PROGRAM := daytime
 OBJECTS := daytime.o
 
 CC := gcc
-CFLAGS := -Wall -O2
+CFLAGS := -Wall -O2 -std=c99
 
 .SUFFIXES: .c .o
 
