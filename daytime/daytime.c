@@ -1,6 +1,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -24,10 +25,19 @@ void _run() {
 
     connect(sock, (struct sockaddr *) &server, sizeof(server));
 
-    FILE *f = fdopen(sock, "r");
+    FILE *f = safe_fdopen(sock, "r");
 
     char buf[1000];
     fgets(buf, sizeof(buf), f);
     fclose(f);
     fputs(buf, stdout);
+}
+
+FILE *safe_fdopen(int fd, const char *mode) {
+    FILE *f = fdopen(fd, mode);
+    if (f == NULL) {
+        perror("safe_fdopen: fdopen(3)");
+        exit(1);
+    }
+    return f;
 }
