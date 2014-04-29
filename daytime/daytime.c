@@ -56,7 +56,7 @@ void daytime(const char *host, short port, bool ipv4) {
     server.sin_port = htons(port);
     safe_inet_pton(AF_INET, host, &server.sin_addr);
 
-    connect(sock, (struct sockaddr *) &server, sizeof(server));
+    safe_connect(sock, (struct sockaddr *) &server, sizeof(server));
 
     FILE *f = safe_fdopen(sock, "r");
 
@@ -82,6 +82,14 @@ void safe_inet_pton(int af, const char *src, void *dst) {
         exit(1);
     } else if (ret == 0) {
         printf("safe_inet_pton: Invalid network address\n");
+        exit(1);
+    }
+}
+
+void safe_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
+    int ret = connect(sockfd, addr, addrlen);
+    if (ret == -1) {
+        perror("safe_connect: connect(2)");
         exit(1);
     }
 }
