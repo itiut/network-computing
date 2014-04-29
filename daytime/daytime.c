@@ -22,7 +22,7 @@ const struct option longopts[] = {
 
 int main(int argc, char *argv[]) {
     const char *default_ipv4_host = "133.11.206.167";
-    const char *default_ipv6_host = "2001:200:180:430:216:3eff:fe49:c10e";
+    const char *default_ipv6_host = "2001:200:180:430:216:3eff:fe0f:19b";
     const int default_port = 13;
 
     int opt;
