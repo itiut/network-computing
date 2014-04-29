@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 1
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
