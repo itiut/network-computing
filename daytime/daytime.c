@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
             usage(argv[0]);
             exit(0);
         case 'i':
-            ipv4 = validate_ip_version(atoi(optarg), argv[0]);
+            ipv4 = is_ipv4_or_exit_if_invalid_ip_version(atoi(optarg), argv[0]);
             break;
         case 'p':
             port = atoi(optarg);
@@ -58,7 +58,7 @@ void usage(const char *program) {
     printf("Usage: %s [-h|--help] [-i <ip_version>|--ip=<ip_version>] [-p <port>|--port=<port>] [<host>]\n", program);
 }
 
-bool validate_ip_version(int ip_version, const char *program) {
+bool is_ipv4_or_exit_if_invalid_ip_version(int ip_version, const char *program) {
     if (ip_version == 4) {
         return true;
     } else if (ip_version == 6) {

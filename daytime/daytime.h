@@ -3,7 +3,7 @@
 
 void usage(const char *program);
 
-bool validate_ip_version(int ip_version, const char *program);
+bool is_ipv4_or_exit_if_invalid_ip_version(int ip_version, const char *program);
 
 void daytime(const char *host, short port, bool ipv4);
 
