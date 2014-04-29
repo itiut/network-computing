@@ -21,6 +21,10 @@ const struct option longopts[] = {
 };
 
 int main(int argc, char *argv[]) {
+    const char *default_ipv4_host = "133.11.206.167";
+    const char *default_ipv6_host = "2001:200:180:430:216:3eff:fe49:c10e";
+    const int default_port = 13;
+
     int opt;
     while ((opt = getopt_long(argc, argv, "h", longopts, NULL)) != -1) {
         switch (opt) {
@@ -37,7 +41,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    daytime(NULL, 0, true);
+    daytime(default_ipv4_host, default_port, true);
     return 0;
 }
 
@@ -46,14 +50,11 @@ void usage(const char *program) {
 }
 
 void daytime(const char *host, short port, bool ipv4) {
-    char *deststr = "133.11.206.167";
-    int destport = 13;
-
     int sock = safe_socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in server;
     server.sin_family = AF_INET;
-    server.sin_port = htons(destport);
-    safe_inet_pton(AF_INET, deststr, &server.sin_addr);
+    server.sin_port = htons(port);
+    safe_inet_pton(AF_INET, host, &server.sin_addr);
 
     connect(sock, (struct sockaddr *) &server, sizeof(server));
 
