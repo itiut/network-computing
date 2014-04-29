@@ -59,13 +59,22 @@ void daytime(const char *host, short port, bool ipv4) {
 }
 
 int create_connection(const char *host, short port, bool ipv4) {
-    int sock = safe_socket(AF_INET, SOCK_STREAM, 0);
-    struct sockaddr_in server;
-    server.sin_family = AF_INET;
-    server.sin_port = htons(port);
-    safe_inet_pton(AF_INET, host, &server.sin_addr);
-
-    safe_connect(sock, (struct sockaddr *) &server, sizeof(server));
+    int sock;
+    if (ipv4) {
+        sock = safe_socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in server;
+        server.sin_family = AF_INET;
+        server.sin_port = htons(port);
+        safe_inet_pton(AF_INET, host, &server.sin_addr);
+        safe_connect(sock, (struct sockaddr *) &server, sizeof(server));
+    } else {
+        sock = safe_socket(AF_INET6, SOCK_STREAM, 0);
+        struct sockaddr_in6 server;
+        server.sin6_family = AF_INET6;
+        server.sin6_port = htons(port);
+        safe_inet_pton(AF_INET6, host, &server.sin6_addr);
+        safe_connect(sock, (struct sockaddr *) &server, sizeof(server));
+    }
     return sock;
 }
 
