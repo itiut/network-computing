@@ -25,6 +25,9 @@ int main(int argc, char *argv[]) {
     const char *default_ipv6_host = "2001:200:180:430:216:3eff:fe0f:19b";
     const short default_port = 13;
 
+    short port = default_port;
+    bool ipv4 = true;
+
     int opt;
     while ((opt = getopt_long(argc, argv, "h", longopts, NULL)) != -1) {
         switch (opt) {
@@ -41,12 +44,16 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    daytime(default_ipv4_host, default_port, true);
+    if (optind == argc) {
+        daytime((ipv4) ? default_ipv4_host : default_ipv6_host, port, ipv4);
+    } else {
+        daytime(argv[optind], port, ipv4);
+    }
     return 0;
 }
 
 void usage(const char *program) {
-    printf("Usage: %s [-h|--help] [-i <ip_version>|--ip=<ip_version>] [-p <port>|--port=<port>] <host>\n", program);
+    printf("Usage: %s [-h|--help] [-i <ip_version>|--ip=<ip_version>] [-p <port>|--port=<port>] [<host>]\n", program);
 }
 
 void daytime(const char *host, short port, bool ipv4) {
