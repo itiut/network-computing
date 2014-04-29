@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <getopt.h>
 #include <netinet/in.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,7 +37,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    _run();
+    daytime(NULL, 0, true);
     return 0;
 }
 
@@ -44,7 +45,7 @@ void usage(const char *program) {
     printf("Usage: %s [-h|--help] [-i <ip_version>|--ip=<ip_version>] [-p <port>|--port=<port>] <host>\n", program);
 }
 
-void _run() {
+void daytime(const char *host, short port, bool ipv4) {
     char *deststr = "133.11.206.167";
     int destport = 13;
 

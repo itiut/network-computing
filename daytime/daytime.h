@@ -3,7 +3,7 @@
 
 void usage(const char *program);
 
-void _run();
+void daytime(const char *host, short port, bool ipv4);
 
 int safe_socket(int domain, int type, int protocol);
 void safe_inet_pton(int af, const char *src, void *dst);
