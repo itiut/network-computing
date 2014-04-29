@@ -3,6 +3,7 @@
 
 void _run();
 
+int safe_socket(int domain, int type, int protocol);
 void safe_inet_pton(int af, const char *src, void *dst);
 FILE *safe_fdopen(int fd, const char *mode);
 

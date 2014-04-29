@@ -17,7 +17,7 @@ void _run() {
     char * deststr = "133.11.206.167";
     int destport = 13;
 
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    int sock = safe_socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in server;
     server.sin_family = AF_INET;
     server.sin_port = htons(destport);
@@ -31,6 +31,15 @@ void _run() {
     fgets(buf, sizeof(buf), f);
     fclose(f);
     fputs(buf, stdout);
+}
+
+int safe_socket(int domain, int type, int protocol) {
+    int sock = socket(domain, type, protocol);
+    if (sock == -1) {
+        perror("safe_socket: socket(2)");
+        exit(1);
+    }
+    return sock;
 }
 
 void safe_inet_pton(int af, const char *src, void *dst) {
