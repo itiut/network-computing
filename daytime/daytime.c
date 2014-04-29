@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 }
 
 void _run() {
-    char * deststr = "133.11.206.167";
+    char *deststr = "133.11.206.167";
     int destport = 13;
 
     int sock = safe_socket(AF_INET, SOCK_STREAM, 0);
