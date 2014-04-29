@@ -1,6 +1,8 @@
 #define _POSIX_C_SOURCE 1
+#define _GNU_SOURCE
 
 #include <arpa/inet.h>
+#include <getopt.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,9 +12,36 @@
 #include <unistd.h>
 #include "daytime.h"
 
+const struct option longopts[] = {
+    {"help", no_argument,       NULL, 'h'},
+    {"ip",   required_argument, NULL, 'i'},
+    {"port", required_argument, NULL, 'p'},
+    {0, 0, 0, 0}
+};
+
 int main(int argc, char *argv[]) {
+    int opt;
+    while ((opt = getopt_long(argc, argv, "h", longopts, NULL)) != -1) {
+        switch (opt) {
+        case 'h':
+            usage(argv[0]);
+            exit(0);
+        case 'i':
+            break;
+        case 'p':
+            break;
+        case '?':
+            usage(argv[0]);
+            exit(1);
+        }
+    }
+
     _run();
     return 0;
+}
+
+void usage(const char *program) {
+    printf("Usage: %s [-h|--help] [-i <ip_version>|--ip=<ip_version>] [-p <port>|--port=<port>] <host>\n", program);
 }
 
 void _run() {

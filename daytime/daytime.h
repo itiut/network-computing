@@ -1,6 +1,8 @@
 #ifndef _DAYTIME_H_
 #define _DAYTIME_H_
 
+void usage(const char *program);
+
 void _run();
 
 int safe_socket(int domain, int type, int protocol);
