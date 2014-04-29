@@ -13,5 +13,6 @@ int safe_socket(int domain, int type, int protocol);
 void safe_inet_pton(int af, const char *src, void *dst);
 void safe_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 FILE *safe_fdopen(int fd, const char *mode);
+void safe_fgets(char *s, int size, FILE *stream);
 
 #endif /* _DAYTIME_H_ */

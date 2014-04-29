@@ -71,7 +71,7 @@ void daytime(const char *host, short port, bool ipv4) {
     int sock = create_connection(host, port, ipv4);
     FILE *f = safe_fdopen(sock, "r");
     char buf[1000];
-    fgets(buf, sizeof(buf), f);
+    safe_fgets(buf, sizeof(buf), f);
     fclose(f);
     fputs(buf, stdout);
 }
@@ -138,4 +138,11 @@ FILE *safe_fdopen(int fd, const char *mode) {
         exit(1);
     }
     return f;
+}
+
+void safe_fgets(char *s, int size, FILE *stream) {
+    char *ret = fgets(s, size, stream);
+    if (ret == NULL) {
+        perror("safe_fgets: fgets(3)");
+    }
 }
