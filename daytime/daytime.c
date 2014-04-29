@@ -28,7 +28,6 @@ int main(int argc, char *argv[]) {
     short port = default_port;
     bool ipv4 = true;
 
-    int ip_version;
     int opt;
     while ((opt = getopt_long(argc, argv, "hi:p:", longopts, NULL)) != -1) {
         switch (opt) {
@@ -36,15 +35,7 @@ int main(int argc, char *argv[]) {
             usage(argv[0]);
             exit(0);
         case 'i':
-            ip_version = atoi(optarg);
-            if (ip_version == 4) {
-                ipv4 = true;
-            } else if (ip_version == 6) {
-                ipv4 = false;
-            } else {
-                printf("%s: Invalid IP version\n", argv[0]);
-                exit(1);
-            }
+            ipv4 = validate_ip_version(atoi(optarg), argv[0]);
             break;
         case 'p':
             port = atoi(optarg);
@@ -65,6 +56,16 @@ int main(int argc, char *argv[]) {
 
 void usage(const char *program) {
     printf("Usage: %s [-h|--help] [-i <ip_version>|--ip=<ip_version>] [-p <port>|--port=<port>] [<host>]\n", program);
+}
+
+bool validate_ip_version(int ip_version, const char *program) {
+    if (ip_version == 4) {
+        return true;
+    } else if (ip_version == 6) {
+        return false;
+    }
+    printf("%s: Invalid IP version\n", program);
+    exit(1);
 }
 
 void daytime(const char *host, short port, bool ipv4) {

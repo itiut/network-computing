@@ -3,6 +3,8 @@
 
 void usage(const char *program);
 
+bool validate_ip_version(int ip_version, const char *program);
+
 void daytime(const char *host, short port, bool ipv4);
 
 int create_connection(const char *host, short port, bool ipv4);
