@@ -28,15 +28,26 @@ int main(int argc, char *argv[]) {
     short port = default_port;
     bool ipv4 = true;
 
+    int ip_version;
     int opt;
-    while ((opt = getopt_long(argc, argv, "h", longopts, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "hi:p:", longopts, NULL)) != -1) {
         switch (opt) {
         case 'h':
             usage(argv[0]);
             exit(0);
         case 'i':
+            ip_version = atoi(optarg);
+            if (ip_version == 4) {
+                ipv4 = true;
+            } else if (ip_version == 6) {
+                ipv4 = false;
+            } else {
+                printf("%s: Invalid IP version\n", argv[0]);
+                exit(1);
+            }
             break;
         case 'p':
+            port = atoi(optarg);
             break;
         case '?':
             usage(argv[0]);
