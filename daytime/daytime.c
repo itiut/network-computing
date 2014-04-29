@@ -21,7 +21,7 @@ void _run() {
     struct sockaddr_in server;
     server.sin_family = AF_INET;
     server.sin_port = htons(destport);
-    int s = inet_pton(AF_INET, deststr, &server.sin_addr);
+    safe_inet_pton(AF_INET, deststr, &server.sin_addr);
 
     connect(sock, (struct sockaddr *) &server, sizeof(server));
 
@@ -31,6 +31,17 @@ void _run() {
     fgets(buf, sizeof(buf), f);
     fclose(f);
     fputs(buf, stdout);
+}
+
+void safe_inet_pton(int af, const char *src, void *dst) {
+    int ret = inet_pton(af, src, dst);
+    if (ret == -1) {
+        perror("safe_inet_pton: inet_pton(3)");
+        exit(1);
+    } else if (ret == 0) {
+        printf("safe_inet_pton: Invalid network address\n");
+        exit(1);
+    }
 }
 
 FILE *safe_fdopen(int fd, const char *mode) {
