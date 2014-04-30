@@ -21,8 +21,8 @@ const struct option longopts[] = {
 };
 
 int main(int argc, char *argv[]) {
-    const char *default_ipv4_host = "133.11.206.167";
-    const char *default_ipv6_host = "2001:200:180:430:216:3eff:fe0f:19b";
+    const char *default_ipv4_address = "133.11.206.167";
+    const char *default_ipv6_address = "2001:200:180:430:216:3eff:fe0f:19b";
     const short default_port = 13;
 
     short port = default_port;
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (optind == argc) {
-        daytime((ipv4) ? default_ipv4_host : default_ipv6_host, port, ipv4);
+        daytime((ipv4) ? default_ipv4_address : default_ipv6_address, port, ipv4);
     } else {
         daytime(argv[optind], port, ipv4);
     }
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 }
 
 void usage(const char *program) {
-    printf("Usage: %s [-h|--help] [-i <ip_version>|--ip=<ip_version>] [-p <port>|--port=<port>] [<host>]\n", program);
+    printf("Usage: %s [-h|--help] [-i <ip_version>|--ip=<ip_version>] [-p <port>|--port=<port>] [<address>]\n", program);
 }
 
 bool is_ipv4_or_exit_if_invalid_ip_version(int ip_version, const char *program) {
@@ -68,8 +68,8 @@ bool is_ipv4_or_exit_if_invalid_ip_version(int ip_version, const char *program) 
     exit(1);
 }
 
-void daytime(const char *host, short port, bool ipv4) {
-    int sock = create_connection(host, port, ipv4);
+void daytime(const char *address, short port, bool ipv4) {
+    int sock = create_connection(address, port, ipv4);
     FILE *f = safe_fdopen(sock, "r");
     char buf[1000];
     safe_fgets(buf, sizeof(buf), f);
@@ -77,29 +77,29 @@ void daytime(const char *host, short port, bool ipv4) {
     fputs(buf, stdout);
 }
 
-int create_connection(const char *host, short port, bool ipv4) {
+int create_connection(const char *address, short port, bool ipv4) {
     if (ipv4) {
-        return create_ipv4_connection(host, port);
+        return create_ipv4_connection(address, port);
     }
-    return create_ipv6_connection(host, port);
+    return create_ipv6_connection(address, port);
 }
 
-int create_ipv4_connection(const char *host, short port) {
+int create_ipv4_connection(const char *address, short port) {
     int sock = safe_socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in server;
     server.sin_family = AF_INET;
     server.sin_port = htons(port);
-    safe_inet_pton(AF_INET, host, &server.sin_addr);
+    safe_inet_pton(AF_INET, address, &server.sin_addr);
     safe_connect(sock, (struct sockaddr *) &server, sizeof(server));
     return sock;
 }
 
-int create_ipv6_connection(const char *host, short port) {
+int create_ipv6_connection(const char *address, short port) {
     int sock = safe_socket(AF_INET6, SOCK_STREAM, 0);
     struct sockaddr_in6 server;
     server.sin6_family = AF_INET6;
     server.sin6_port = htons(port);
-    safe_inet_pton(AF_INET6, host, &server.sin6_addr);
+    safe_inet_pton(AF_INET6, address, &server.sin6_addr);
     safe_connect(sock, (struct sockaddr *) &server, sizeof(server));
     return sock;
 }
