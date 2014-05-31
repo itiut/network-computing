@@ -2,14 +2,13 @@
 
 #include <arpa/inet.h>
 #include <signal.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "safe_functions.h"
 #include "httpd_fork.h"
+#include "safe_functions.h"
+#include "server.h"
 
 int main(int argc, char *argv[]) {
     suppress_zombies();
@@ -26,7 +25,7 @@ int main(int argc, char *argv[]) {
         if ((pid = fork()) == 0) {
             /* child */
             close(listen_fd);
-            doit(connection_fd);
+            server_main(connection_fd);
             close(connection_fd);
             exit(EXIT_SUCCESS);
         }
@@ -60,15 +59,4 @@ int create_listened_socket(struct sockaddr_in addr) {
     safe_bind(sockfd, (struct sockaddr *) &addr, sizeof(addr));
     safe_listen(sockfd, LISTENQ);
     return sockfd;
-}
-
-void doit(int sock) {
-    char buff[1024];
-    memset(buff, 0, sizeof(buff));
-    recv(sock, buff, sizeof(buff), 0);
-    printf("%s\n", buff);
-
-    char output[] = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n<h1>HELLO</h1>\r\n";
-
-    send(sock, output, sizeof(output), 0);
 }
