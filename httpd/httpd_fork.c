@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 
     while (1) {
         struct sockaddr_in client_addr;
-        socklen_t len = sizeof(struct sockaddr_in);
+        socklen_t len = sizeof(client_addr);
         int connection_fd = safe_accept(listen_fd, (struct sockaddr *) &client_addr, &len);
 
         pid_t pid;
