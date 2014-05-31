@@ -9,7 +9,7 @@ int safe_socket(int domain, int type, int protocol) {
     int sock = socket(domain, type, protocol);
     if (sock == -1) {
         perror("safe_socket: socket(2)");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     return sock;
 }
@@ -19,7 +19,7 @@ void safe_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
     if (ret == -1) {
         perror("safe_bind: bind(2)");
         close(sockfd);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -28,7 +28,7 @@ void safe_listen(int sockfd, int backlog) {
     if (ret == -1) {
         perror("safe_listen: listen(2)");
         close(sockfd);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -37,7 +37,7 @@ int safe_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
     if (ret == -1) {
         perror("safe_accept: accept(2)");
         close(sockfd);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     return ret;
 }
