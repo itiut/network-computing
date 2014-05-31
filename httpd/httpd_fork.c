@@ -20,9 +20,7 @@ int main(int argc, char *argv[]) {
     while (1) {
         struct sockaddr_in client_addr;
         socklen_t len = sizeof(struct sockaddr_in);
-        printf("accepting...\n");
         int connection_fd = safe_accept(listen_fd, (struct sockaddr *) &client_addr, &len);
-        printf("accepted...\n");
 
         pid_t pid;
         if ((pid = fork()) == 0) {
