@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -46,6 +47,15 @@ int safe_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
     if (ret == -1) {
         perror("safe_accept: accept(2)");
         close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+    return ret;
+}
+
+int safe_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout) {
+    int ret = select(nfds, readfds, writefds, exceptfds, timeout);
+    if (ret == -1) {
+        perror("safe_select: select(2)");
         exit(EXIT_FAILURE);
     }
     return ret;
