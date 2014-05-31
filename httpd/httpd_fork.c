@@ -1,13 +1,13 @@
 #define _POSIX_C_SOURCE 1
 
 #include <arpa/inet.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <signal.h>
 #include "safe_functions.h"
 #include "httpd_fork.h"
 
