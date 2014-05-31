@@ -4,10 +4,13 @@
 #include "safe_functions.h"
 
 struct sockaddr_in create_server_addr(short port) {
-    struct sockaddr_in addr;
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    struct sockaddr_in addr = {
+        .sin_family = AF_INET,
+        .sin_addr = {
+            .s_addr = htonl(INADDR_ANY)
+        },
+        .sin_port = htons(port)
+    };
     return addr;
 }
 
