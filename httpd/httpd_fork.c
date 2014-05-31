@@ -14,14 +14,8 @@
 int main(int argc, char *argv[]) {
     suppress_zombies();
 
-    struct sockaddr_in server_addr;
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(21600 + 1006);
-    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-    int listen_fd = safe_socket(AF_INET, SOCK_STREAM, 0);
-    safe_bind(listen_fd, (struct sockaddr *) &server_addr, sizeof(struct sockaddr_in));
-    safe_listen(listen_fd, LISTENQ);
+    struct sockaddr_in server_addr = create_server_addr(21500 + 1006);
+    int listen_fd = create_listened_socket(server_addr);
 
     while (1) {
         struct sockaddr_in client_addr;
@@ -29,6 +23,7 @@ int main(int argc, char *argv[]) {
         printf("accepting...\n");
         int connection_fd = safe_accept(listen_fd, (struct sockaddr *) &client_addr, &len);
         printf("accepted...\n");
+
         pid_t pid;
         if ((pid = fork()) == 0) {
             /* child */
@@ -52,6 +47,21 @@ void suppress_zombies() {
     if (sigaction(SIGCHLD, &sa, NULL) == -1) {
         exit(EXIT_FAILURE);
     }
+}
+
+struct sockaddr_in create_server_addr(short port) {
+    struct sockaddr_in addr;
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    return addr;
+}
+
+int create_listened_socket(struct sockaddr_in addr) {
+    int sockfd = safe_socket(AF_INET, SOCK_STREAM, 0);
+    safe_bind(sockfd, (struct sockaddr *) &addr, sizeof(addr));
+    safe_listen(sockfd, LISTENQ);
+    return sockfd;
 }
 
 void doit(int sock) {
