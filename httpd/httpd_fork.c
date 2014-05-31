@@ -2,6 +2,7 @@
 
 #include <arpa/inet.h>
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -15,6 +16,8 @@ int main(int argc, char *argv[]) {
 
     struct sockaddr_in server_addr = create_server_addr(21600 + 1006);
     int listen_fd = create_listened_socket(server_addr);
+
+    printf("Serving HTTP on %s port %d ...\n", inet_ntoa(server_addr.sin_addr), ntohs(server_addr.sin_port));
 
     while (1) {
         struct sockaddr_in client_addr;
