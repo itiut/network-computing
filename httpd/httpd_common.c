@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <stdio.h>
 #include "httpd_common.h"
 #include "safe_functions.h"
 
@@ -15,4 +16,8 @@ int create_listened_socket(struct sockaddr_in addr) {
     safe_bind(sockfd, (struct sockaddr *) &addr, sizeof(addr));
     safe_listen(sockfd, LISTENQ);
     return sockfd;
+}
+
+void print_starting_message(struct sockaddr_in addr) {
+    printf("Serving HTTP on %s port %d ...\n", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 }
