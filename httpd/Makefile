@@ -1,5 +1,5 @@
 PROGRAM := httpd_fork
-OBJECTS := httpd_fork.o safe_functions.o server.o
+OBJECTS := httpd_common.o httpd_fork.o safe_functions.o server.o
 
 CC := gcc
 CFLAGS := -Wall -O2 -std=c99
