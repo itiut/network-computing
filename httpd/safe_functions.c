@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/select.h>
@@ -59,4 +60,12 @@ int safe_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, 
         exit(EXIT_FAILURE);
     }
     return ret;
+}
+
+void safe_pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine) (void *), void *arg) {
+    int ret = pthread_create(thread, attr, start_routine, arg);
+    if (ret == -1) {
+        perror("safe_pthread_create: pthread_create(3)");
+        exit(EXIT_FAILURE);
+    }
 }
