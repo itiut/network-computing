@@ -16,6 +16,8 @@ struct sockaddr_in create_server_addr(short port) {
 
 int create_listened_socket(struct sockaddr_in addr) {
     int sockfd = safe_socket(AF_INET, SOCK_STREAM, 0);
+    int reuse = 1;
+    safe_setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const void *) &reuse, sizeof(reuse));
     safe_bind(sockfd, (struct sockaddr *) &addr, sizeof(addr));
     safe_listen(sockfd, LISTENQ);
     return sockfd;

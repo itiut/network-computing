@@ -14,6 +14,15 @@ int safe_socket(int domain, int type, int protocol) {
     return sock;
 }
 
+void safe_setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen) {
+    int ret = setsockopt(sockfd, level, optname, optval, optlen);
+    if (ret == -1) {
+        perror("safe_setsockopt: setsockopt(2)");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+}
+
 void safe_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen) {
     int ret = bind(sockfd, addr, addrlen);
     if (ret == -1) {
