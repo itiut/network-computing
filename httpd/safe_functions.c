@@ -7,6 +7,15 @@
 #include <unistd.h>
 #include "safe_functions.h"
 
+void *safe_malloc(size_t size) {
+    void *p = malloc(size);
+    if (p == NULL) {
+        perror("safe_malloc: malloc(3)");
+        exit(EXIT_FAILURE);
+    }
+    return p;
+}
+
 int safe_socket(int domain, int type, int protocol) {
     int sock = socket(domain, type, protocol);
     if (sock == -1) {

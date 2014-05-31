@@ -1,6 +1,10 @@
 #ifndef _HTTPD_THREAD_H_
 #define _HTTPD_THREAD_H_
 
-void *server_thread(void *arg);
+struct thread_args {
+    int sockfd;
+};
+
+void *server_thread(void *args);
 
 #endif /* _HTTPD_THREAD_H_ */

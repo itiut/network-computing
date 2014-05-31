@@ -17,15 +17,20 @@ int main(int argc, char *argv[]) {
         socklen_t len = sizeof(client_addr);
         int connection_fd = safe_accept(listen_fd, (struct sockaddr *) &client_addr, &len);
 
+        struct thread_args *thread_args = (struct thread_args *) safe_malloc(sizeof(struct thread_args));
+        thread_args->sockfd = connection_fd;
+
         pthread_t tid;
-        safe_pthread_create(&tid, NULL, server_thread, (void *) connection_fd);
+        safe_pthread_create(&tid, NULL, server_thread, (void *) thread_args);
     }
 }
 
-void *server_thread(void *arg) {
+void *server_thread(void *args) {
     pthread_detach(pthread_self());
 
-    int connection_fd = (int) arg;
+    int connection_fd = ((struct thread_args *) args)->sockfd;
+    free(args);
+
     server_main(connection_fd);
     close(connection_fd);
 
