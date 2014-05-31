@@ -3,5 +3,8 @@
 
 #define LISTENQ 10
 
+void suppress_zombies();
+
+void doit(int sock);
 
 #endif /* _HTTPD_FORK_H_ */

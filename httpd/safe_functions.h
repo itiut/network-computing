@@ -2,7 +2,6 @@
 #define _SAFE_FUNCTIONS_H_
 
 #include <sys/socket.h>
-/* #include <sys/types.h> */
 
 int safe_socket(int domain, int type, int protocol);
 void safe_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
