@@ -20,11 +20,11 @@ Network Computing 2014
 ----
 ### プログラムリスト
 * [httpd/httpd_fork.c](/httpd/httpd_fork.c)
-  * fork版
+  * `fork`版
 * [httpd/httpd_select.c](/httpd/httpd_select.c)
-  * select版
+  * `select`版
 * [httpd/httpd_thread.c](/httpd/httpd_thread.c)
-  * thread版
+  * `pthread`版
 * [httpd/server.c](/httpd/server.c)
   * HTTPリクエスト・レスポンスを処理するプログラム
 
