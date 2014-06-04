@@ -58,16 +58,22 @@ void parse_request_header(struct HTTPRequest *req, char *request_string) {
 }
 
 void respond_to(struct HTTPRequest *req, int sockfd) {
-    char *body[] = {
-        "<h1>501 Not Implemented</h1>\r\n",          /* 501 */
-        "",                                          /* HEAD 200 */
-        "<font color=red><h1>HELLO</h1></font>\r\n", /* GET 200 */
-    };
-
     int status[] = {
         501,
         200,
         200,
+    };
+
+    char *status_messages[] = {
+        "Not Implemented",
+        "OK",
+        "OK",
+    };
+
+    char *body[] = {
+        "<h1>501 Not Implemented</h1>\r\n",          /* 501 */
+        "",                                          /* HEAD 200 */
+        "<font color=red><h1>HELLO</h1></font>\r\n", /* GET 200 */
     };
 
     int status_id = 0;
@@ -81,11 +87,12 @@ void respond_to(struct HTTPRequest *req, int sockfd) {
     char output[4096];
     memset(output, 0, sizeof(output));
     snprintf(output, sizeof(output),
-             "HTTP/1.0 %d OK\r\n"
+             "HTTP/1.0 %d %s\r\n"
              "Content-Type: text/html\r\n"
              "\r\n"
              "%s",
              status[status_id],
+             status_messages[status_id],
              body[status_id]
     );
 
