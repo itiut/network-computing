@@ -76,16 +76,28 @@ int main(int argc, char *argv[]) {
 
                 add_user(manager, connection_fd, "aaa");
                 printf("user %s joined.\n", "aaa");
-            } else {
-                char buffer[1024];
-                memset(buffer, 0, sizeof(buffer));
-
-                int fd = events[i].data.fd;
-                read(fd, buffer, sizeof(buffer));
-
-                user_t user = find_user_by_fd(manager, fd);
-                printf("%s:%s", user->name, buffer);
+                continue;
             }
+
+            int fd = events[i].data.fd;
+            user_t user = find_user_by_fd(manager, fd);
+
+            char buffer[1024];
+            memset(buffer, 0, sizeof(buffer));
+            int ret = read(fd, buffer, sizeof(buffer));
+            if (ret == -1) {
+                perror("read(2)");
+                exit(EXIT_FAILURE);
+            }
+            if (ret == 0) {
+                /* connection was closed by remote host */
+                printf("user %s left.\n", user->name);
+                safe_epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+                delete_user_by_fd(manager, fd);
+                continue;
+            }
+
+            printf("%s:%s", user->name, buffer);
         }
     }
     return 0;
