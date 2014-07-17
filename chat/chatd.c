@@ -1,11 +1,12 @@
 #include <arpa/inet.h>
-#include <sys/epoll.h>
-#include <string.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/epoll.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include "safe_functions.h"
+#include "user_manager.h"
 #include "chatd.h"
 
 const short PORT = 8090;
@@ -57,6 +58,8 @@ int main(int argc, char *argv[]) {
     const int MAX_EVENTS = 10;
     struct epoll_event events[MAX_EVENTS];
 
+    user_manager_t manager = create_user_manager();
+
     while (1) {
         int n_of_fds = safe_epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 
@@ -70,15 +73,18 @@ int main(int argc, char *argv[]) {
                 e.events = EPOLLIN;
                 e.data.fd = connection_fd;
                 safe_epoll_ctl(epoll_fd, EPOLL_CTL_ADD, connection_fd, &e);
+
+                add_user(manager, connection_fd, "aaa");
+                printf("user %s joined.\n", "aaa");
             } else {
-                int fd = events[i].data.fd;
                 char buffer[1024];
                 memset(buffer, 0, sizeof(buffer));
-                /* read(fd, buffer, sizeof(buffer)); */
-                recv(fd, buffer, sizeof(buffer), 0);
-                /* printf("recv from %d:EOF\n", i); */
-                write(1, buffer, strlen(buffer));
-                /* printf("EOF\n"); */
+
+                int fd = events[i].data.fd;
+                read(fd, buffer, sizeof(buffer));
+
+                user_t user = find_user_by_fd(manager, fd);
+                printf("%s:%s", user->name, buffer);
             }
         }
     }

@@ -1,8 +1,9 @@
-#include <sys/epoll.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/epoll.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include "safe_functions.h"
 
 void *safe_malloc(size_t size) {
