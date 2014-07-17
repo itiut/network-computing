@@ -7,6 +7,8 @@
 
 void *safe_malloc(size_t size);
 
+char *safe_strdup(const char *s);
+
 int safe_socket(int domain, int type, int protocol);
 void safe_setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);
 void safe_bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);

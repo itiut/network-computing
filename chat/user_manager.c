@@ -6,9 +6,7 @@
 user_t create_user(int fd, const char *name) {
     user_t user = (user_t) safe_malloc(sizeof(struct user));
     user->fd = fd;
-    size_t len = strlen(name);
-    user->name = (char *) safe_malloc(len);
-    strncpy(user->name, name, len);
+    user->name = safe_strdup(name);
     return user;
 }
 

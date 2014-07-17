@@ -1,5 +1,8 @@
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -13,6 +16,15 @@ void *safe_malloc(size_t size) {
         exit(EXIT_FAILURE);
     }
     return p;
+}
+
+char *safe_strdup(const char *s) {
+    char *duplicated = strdup(s);
+    if (duplicated == NULL) {
+        perror("safe_strdup: strdup(3)");
+        exit(EXIT_FAILURE);
+    }
+    return duplicated;
 }
 
 int safe_socket(int domain, int type, int protocol) {
