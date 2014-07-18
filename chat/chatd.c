@@ -120,11 +120,8 @@ void send_message(int epoll_fd, user_t receiver) {
 message_t receive_message_from(user_t sender) {
     char buffer[MAX_RECEIVE_BYTES];
     memset(buffer, 0, sizeof(buffer));
-    int ret = read(sender->fd, buffer, sizeof(buffer));
-    if (ret == -1) {
-        perror("read(2)");
-        exit(EXIT_FAILURE);
-    } else if (ret == 0) {
+    int bytes = safe_read(sender->fd, buffer, sizeof(buffer));
+    if (bytes == 0) {
         /* connection was closed by remote host */
         return NULL;
     }

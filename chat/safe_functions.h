@@ -10,6 +10,9 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+ssize_t safe_read(int fd, void *buf, size_t count);
+ssize_t safe_write(int fd, const void *buf, size_t count);
+
 void *safe_malloc(size_t size);
 
 char *safe_strdup(const char *s);

@@ -12,6 +12,24 @@
 #include <unistd.h>
 #include "safe_functions.h"
 
+ssize_t safe_read(int fd, void *buf, size_t count) {
+    ssize_t bytes = read(fd, buf, count);
+    if (bytes == -1) {
+        perror("safe_read: read(2)");
+        exit(EXIT_FAILURE);
+    }
+    return bytes;
+}
+
+ssize_t safe_write(int fd, const void *buf, size_t count) {
+    ssize_t bytes = write(fd, buf, count);
+    if (bytes == -1) {
+        perror("safe_write: write(2)");
+        exit(EXIT_FAILURE);
+    }
+    return bytes;
+}
+
 void *safe_malloc(size_t size) {
     void *p = malloc(size);
     if (p == NULL) {
