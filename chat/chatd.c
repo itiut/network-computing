@@ -4,6 +4,7 @@
 
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,11 +18,12 @@ const short PORT = 8090;
 const int LISTENQ = 10;
 
 int main(int argc, char *argv[]) {
-    struct sockaddr_in server_addr = create_server_addr(PORT);
-    int listen_fd = create_listened_socket(server_addr);
+    struct fdinfo *listened_fds = create_listened_sockets("8090");
 
     int epoll_fd = safe_epoll_create1(0);
-    safe_epoll_ctl1(epoll_fd, EPOLL_CTL_ADD, listen_fd, EPOLLIN);
+    for (struct fdinfo *fi = listened_fds; fi != NULL; fi = fi->next) {
+        safe_epoll_ctl1(epoll_fd, EPOLL_CTL_ADD, fi->fd, EPOLLIN);
+    }
 
     const int MAX_EVENTS = 10;
     struct epoll_event events[MAX_EVENTS];
@@ -32,20 +34,12 @@ int main(int argc, char *argv[]) {
         int n_of_fds = safe_epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 
         for (int i = 0; i < n_of_fds; i++) {
-            if (events[i].data.fd == listen_fd) {
-                struct sockaddr_in client_addr;
-                socklen_t len = sizeof(client_addr);
-                int connection_fd = safe_accept(listen_fd, (struct sockaddr *) &client_addr, &len);
-                safe_epoll_ctl1(epoll_fd, EPOLL_CTL_ADD, connection_fd, EPOLLIN);
-
-                add_user(manager, connection_fd, "aaa");
-                printf("user %s joined.\n", "aaa");
+            int fd = events[i].data.fd;
+            if (process_listened_fds(epoll_fd, listened_fds, fd, manager)) {
                 continue;
             }
 
-            int fd = events[i].data.fd;
             user_t user = find_user_by_fd(manager, fd);
-
             if (events[i].events & EPOLLOUT) {
                 send_message(epoll_fd, user);
             } else if (events[i].events & EPOLLIN) {
@@ -56,24 +50,55 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-struct sockaddr_in create_server_addr(short port) {
-    struct sockaddr_in addr = {
-        .sin_family = AF_INET,
-        .sin_addr = {
-            .s_addr = htonl(INADDR_ANY)
-        },
-        .sin_port = htons(port)
+struct fdinfo *create_listened_sockets(const char *port) {
+    struct fdinfo *listened_fds = NULL;
+    struct addrinfo hints = {
+        .ai_flags = AI_PASSIVE,
+        .ai_family = AF_UNSPEC,
+        .ai_socktype = SOCK_STREAM
     };
-    return addr;
+    struct addrinfo *res;
+    safe_getaddrinfo(NULL, port, &hints, &res);
+    for (struct addrinfo *ai = res; ai != NULL; ai = ai->ai_next) {
+        int sockfd = create_listened_socket(ai);
+        struct fdinfo *fi = (struct fdinfo *) safe_malloc(sizeof(struct fdinfo));
+        fi->fd = sockfd;
+        fi->next = listened_fds;
+        listened_fds = fi;
+    }
+    freeaddrinfo(res);
+    return listened_fds;
 }
 
-int create_listened_socket(struct sockaddr_in addr) {
-    int sockfd = safe_socket(AF_INET, SOCK_STREAM, 0);
-    int reuse = 1;
-    safe_setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const void *) &reuse, sizeof(reuse));
-    safe_bind(sockfd, (struct sockaddr *) &addr, sizeof(addr));
+int create_listened_socket(struct addrinfo *ai) {
+    int sockfd = safe_socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+    if (ai->ai_family == AF_INET || ai->ai_family == AF_INET6) {
+        int reuse = 1;
+        safe_setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const void *) &reuse, sizeof(reuse));
+    }
+    if (ai->ai_family == AF_INET6) {
+        int ipv6 = 1;
+        safe_setsockopt(sockfd, IPPROTO_IPV6, IPV6_V6ONLY, (const void *) &ipv6, sizeof(ipv6));
+    }
+    safe_bind(sockfd, ai->ai_addr, ai->ai_addrlen);
     safe_listen(sockfd, LISTENQ);
     return sockfd;
+}
+
+bool process_listened_fds(int epoll_fd, struct fdinfo *listened_fds, int fd, user_manager_t manager) {
+    for (struct fdinfo *fi = listened_fds; fi != NULL; fi = fi->next) {
+        if (fi->fd == fd) {
+            struct sockaddr_storage client_addr;
+            socklen_t len = sizeof(client_addr);
+            int connection_fd = safe_accept(fi->fd, (struct sockaddr *) &client_addr, &len);
+            safe_epoll_ctl1(epoll_fd, EPOLL_CTL_ADD, connection_fd, EPOLLIN);
+
+            add_user(manager, connection_fd, "aaa");
+            printf("user %s joined.\n", "aaa");
+            return true;
+        }
+    }
+    return false;
 }
 
 void send_message(int epoll_fd, user_t receiver) {
