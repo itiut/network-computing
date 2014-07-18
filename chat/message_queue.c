@@ -3,13 +3,16 @@
 #endif
 
 #include <stdlib.h>
+#include <string.h>
 #include "safe_functions.h"
 #include "message_queue.h"
+
+const char *MESSAGE_TIMESTAMP_FORMAT = "%T"; /* %H:%M:%S */
 
 void fill_timestamp(char *timestamp, size_t length) {
     time_t timep = safe_time(NULL);
     struct tm *tm = safe_localtime(&timep);
-    safe_strftime(timestamp, length, TIME_FORMAT, tm);
+    safe_strftime(timestamp, length, MESSAGE_TIMESTAMP_FORMAT, tm);
 }
 
 message_t create_message(const char *sender_name, const char *body) {
@@ -19,6 +22,15 @@ message_t create_message(const char *sender_name, const char *body) {
     message->body = safe_strdup(body);
     message->next = NULL;
     return message;
+}
+
+message_t copy_message(const message_t m0) {
+    message_t m1 = (message_t) safe_malloc(sizeof(struct message));
+    strncpy(m1->timestamp, m0->timestamp, sizeof(m1->timestamp));
+    m1->sender_name = safe_strdup(m0->sender_name);
+    m1->body = safe_strdup(m0->body);
+    m1->next = NULL;
+    return m1;
 }
 
 void delete_message(message_t message) {
@@ -43,14 +55,14 @@ void delete_message_queue(message_queue_t queue) {
     }
 }
 
-void push_message(message_queue_t queue, const char *sender_name, const char *body) {
-    message_t message = create_message(sender_name, body);
+void push_message(message_queue_t queue, message_t m0) {
+    message_t m1 = copy_message(m0);
     if (queue->n_of_messages == 0) {
-        queue->first = message;
+        queue->first = m1;
     } else {
-        queue->last->next = message;
+        queue->last->next = m1;
     }
-    queue->last = message;
+    queue->last = m1;
     queue->n_of_messages++;
 }
 

@@ -38,12 +38,18 @@ int main(int argc, char *argv[]) {
             if (process_listened_fds(epoll_fd, listened_fds, fd, manager)) {
                 continue;
             }
-
             user_t user = find_user_by_fd(manager, fd);
             if (events[i].events & EPOLLOUT) {
                 send_message(epoll_fd, user);
             } else if (events[i].events & EPOLLIN) {
-                receive_message(epoll_fd, manager, user);
+                message_t message = receive_message_from(user);
+                if (message == NULL) {
+                    close_connection(epoll_fd, manager, user);
+                    continue;
+                }
+                enqueue_message_to_others(epoll_fd, manager, user, message);
+                print_message(message);
+                delete_message(message);
             }
         }
     }
@@ -111,8 +117,8 @@ void send_message(int epoll_fd, user_t receiver) {
     }
 }
 
-void receive_message(int epoll_fd, user_manager_t manager, user_t sender) {
-    char buffer[1024];
+message_t receive_message_from(user_t sender) {
+    char buffer[MAX_RECEIVE_BYTES];
     memset(buffer, 0, sizeof(buffer));
     int ret = read(sender->fd, buffer, sizeof(buffer));
     if (ret == -1) {
@@ -120,22 +126,31 @@ void receive_message(int epoll_fd, user_manager_t manager, user_t sender) {
         exit(EXIT_FAILURE);
     } else if (ret == 0) {
         /* connection was closed by remote host */
-        printf("user %s left.\n", sender->name);
-        safe_epoll_ctl(epoll_fd, EPOLL_CTL_DEL, sender->fd, NULL);
-        delete_user_by_fd(manager, sender->fd);
-        return;
+        return NULL;
     }
-    printf("%s:%s", sender->name, buffer);
-    enqueue_message_to_others(epoll_fd, manager, sender, buffer);
+    return create_message(sender->name, buffer);
 }
 
-void enqueue_message_to_others(int epoll_fd, user_manager_t manager, user_t sender, const char *body) {
+void close_connection(int epoll_fd, user_manager_t manager, user_t user) {
+    safe_epoll_ctl(epoll_fd, EPOLL_CTL_DEL, user->fd, NULL);
+    delete_user_by_fd(manager, user->fd);
+}
+
+void enqueue_message_to_others(int epoll_fd, user_manager_t manager, user_t sender, message_t message) {
     for (int i = 0; i < manager->n_of_users; i++) {
         user_t user = manager->users[i];
         if (user == sender) {
             continue;
         }
-        push_message(user->queue, sender->name, body);
-        safe_epoll_ctl1(epoll_fd, EPOLL_CTL_MOD, user->fd, EPOLLIN | EPOLLOUT);
+        enqueue_message_to(epoll_fd, user, message);
     }
+}
+
+void enqueue_message_to(int epoll_fd, user_t receiver, message_t message) {
+    push_message(receiver->queue, message);
+    safe_epoll_ctl1(epoll_fd, EPOLL_CTL_MOD, receiver->fd, EPOLLIN | EPOLLOUT);
+}
+
+void print_message(message_t message) {
+    printf("%s %s: %s", message->timestamp, message->sender_name, message->body);
 }
