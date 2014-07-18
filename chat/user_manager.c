@@ -8,10 +8,11 @@
 #include "message_queue.h"
 #include "user_manager.h"
 
-user_t create_user(int fd, const char *name) {
+user_t create_user(int fd) {
     user_t user = (user_t) safe_malloc(sizeof(struct user));
     user->fd = fd;
-    user->name = safe_strdup(name);
+    user->state = CONNECTED;
+    user->name = NULL;
     user->queue = create_message_queue();
     return user;
 }
@@ -35,12 +36,12 @@ void delete_user_manager(user_manager_t manager) {
     free(manager);
 }
 
-int add_user(user_manager_t manager, int fd, const char *name) {
+int add_user(user_manager_t manager, int fd) {
     if (manager->n_of_users >= MAX_N_OF_USERS) {
         /* cannot add a user */
         return -1;
     }
-    manager->users[manager->n_of_users++] = create_user(fd, name);
+    manager->users[manager->n_of_users++] = create_user(fd);
     return 1;
 }
 
