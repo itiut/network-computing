@@ -18,7 +18,9 @@ user_t create_user(int fd) {
 }
 
 void delete_user(user_t user) {
-    free(user->name);
+    if (user->name) {
+        free(user->name);
+    }
     delete_message_queue(user->queue);
     free(user);
 }
