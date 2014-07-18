@@ -101,10 +101,12 @@ void safe_epoll_ctl(int epfd, int op, int fd, struct epoll_event *event) {
 }
 
 void safe_epoll_ctl1(int epfd, int op, int fd, uint32_t events) {
-    struct epoll_event event;
-    memset(&event, 0, sizeof(event));
-    event.events = events;
-    event.data.fd = fd;
+    struct epoll_event event = {
+        .events = events,
+        .data = {
+            .fd = fd
+        }
+    };
     safe_epoll_ctl(epfd, op, fd, &event);
 }
 
