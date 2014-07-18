@@ -133,7 +133,7 @@ message_t receive_message_from(user_t sender) {
         /* connection was closed by remote host */
         return NULL;
     }
-    chomp(buffer);
+    rtrim_newlines(buffer);
     return create_message(sender->name, buffer);
 }
 
@@ -161,9 +161,10 @@ void print_message(message_t message) {
     printf(MESSAGE_FORMAT, message->timestamp, message->sender_name, message->body);
 }
 
-void chomp(char *string) {
-    size_t length = strlen(string);
-    if (string[length - 1] == '\n') {
-        string[length - 1] = '\0';
+void rtrim_newlines(char *string) {
+    char *last = string + strlen(string) - 1;
+    while (*last == '\n' || *last == '\r') {
+        last--;
     }
+    *(last + 1) = '\0';
 }
