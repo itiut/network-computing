@@ -1,4 +1,6 @@
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,6 +27,14 @@ char *safe_strdup(const char *s) {
         exit(EXIT_FAILURE);
     }
     return duplicated;
+}
+
+void safe_getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res) {
+    int ret = getaddrinfo(node, service, hints, res);
+    if (ret != 0) {
+        fprintf(stderr, "safe_getaddrinfo: getaddrinfo(3): %s\n", gai_strerror(ret));
+        exit(EXIT_FAILURE);
+    }
 }
 
 int safe_socket(int domain, int type, int protocol) {
