@@ -8,6 +8,7 @@ typedef struct message {
     char *sender_name;
     char *body;
     struct message *next;
+    size_t bytes;
 } *message_t;
 
 typedef struct message_queue {

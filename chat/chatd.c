@@ -17,6 +17,8 @@
 const short PORT = 8090;
 const int LISTENQ = 10;
 
+const char *MESSAGE_FORMAT = "%s %s: %s\n"; /* HH:MM:SS name: body */
+
 int main(int argc, char *argv[]) {
     struct fdinfo *listened_fds = create_listened_sockets("8090");
 
@@ -109,9 +111,12 @@ bool process_listened_fds(int epoll_fd, struct fdinfo *listened_fds, int fd, use
 
 void send_message(int epoll_fd, user_t receiver) {
     message_t message = pop_message(receiver->queue);
-    send(receiver->fd, message->body, strlen(message->body), 0);
+    size_t length = message->bytes + 5; /* 2 spaces, colon, newline, \0 */
+    char *buffer = (char *) safe_malloc(length);
+    sprintf(buffer, MESSAGE_FORMAT, message->timestamp, message->sender_name, message->body);
+    safe_write(receiver->fd, buffer, length);
     delete_message(message);
-
+    free(buffer);
     if (receiver->queue->n_of_messages == 0) {
         safe_epoll_ctl1(epoll_fd, EPOLL_CTL_MOD, receiver->fd, EPOLLIN);
     }
@@ -125,6 +130,7 @@ message_t receive_message_from(user_t sender) {
         /* connection was closed by remote host */
         return NULL;
     }
+    chomp(buffer);
     return create_message(sender->name, buffer);
 }
 
@@ -149,5 +155,12 @@ void enqueue_message_to(int epoll_fd, user_t receiver, message_t message) {
 }
 
 void print_message(message_t message) {
-    printf("%s %s: %s", message->timestamp, message->sender_name, message->body);
+    printf(MESSAGE_FORMAT, message->timestamp, message->sender_name, message->body);
+}
+
+void chomp(char *string) {
+    size_t length = strlen(string);
+    if (string[length - 1] == '\n') {
+        string[length - 1] = '\0';
+    }
 }

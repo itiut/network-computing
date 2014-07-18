@@ -30,4 +30,6 @@ void enqueue_message_to(int epoll_fd, user_t receiver, message_t message);
 
 void print_message(message_t message);
 
+void chomp(char *string);
+
 #endif /* CHATD_H */

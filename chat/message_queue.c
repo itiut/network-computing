@@ -21,6 +21,7 @@ message_t create_message(const char *sender_name, const char *body) {
     message->sender_name = safe_strdup(sender_name);
     message->body = safe_strdup(body);
     message->next = NULL;
+    message->bytes = strlen(message->timestamp) + strlen(message->sender_name) + strlen(message->body);
     return message;
 }
 
@@ -30,6 +31,7 @@ message_t copy_message(const message_t m0) {
     m1->sender_name = safe_strdup(m0->sender_name);
     m1->body = safe_strdup(m0->body);
     m1->next = NULL;
+    m1->bytes = m0->bytes;
     return m1;
 }
 
