@@ -8,6 +8,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 #include "safe_functions.h"
 
@@ -117,4 +118,31 @@ int safe_epoll_wait(int epfd, struct epoll_event *events, int maxevents, int tim
         exit(EXIT_FAILURE);
     }
     return n_of_fds;
+}
+
+time_t safe_time(time_t *t) {
+    time_t timep = time(t);
+    if (timep == (time_t) -1) {
+        perror("safe_time: time(2)");
+        exit(EXIT_FAILURE);
+    }
+    return timep;
+}
+
+struct tm *safe_localtime(const time_t *timep) {
+    struct tm *tm = localtime(timep);
+    if (tm == NULL) {
+        perror("safe_localtime: localtime(3)");
+        exit(EXIT_FAILURE);
+    }
+    return tm;
+}
+
+size_t safe_strftime(char *s, size_t max, const char *format, const struct tm *tm) {
+    size_t bytes = strftime(s, max, format, tm);
+    if (bytes == 0) {
+        fprintf(stderr, "safe_strftime: strftime(3) returned 0\n");
+        exit(EXIT_FAILURE);
+    }
+    return bytes;
 }

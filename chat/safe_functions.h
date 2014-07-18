@@ -26,4 +26,8 @@ void safe_epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);
 void safe_epoll_ctl1(int epfd, int op, int fd, uint32_t events);
 int safe_epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
 
+time_t safe_time(time_t *t);
+struct tm *safe_localtime(const time_t *timep);
+size_t safe_strftime(char *s, size_t max, const char *format, const struct tm *tm);
+
 #endif /* SAFE_FUNCTIONS_H */

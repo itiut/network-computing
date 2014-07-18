@@ -1,7 +1,12 @@
 #ifndef MESSAGE_QUEUE_H
 #define MESSAGE_QUEUE_H
 
+#include <stdlib.h>
+
+const char *TIME_FORMAT = "%T"; /* %H:%M:%S */
+
 typedef struct message {
+    char timestamp[12];
     char *sender_name;
     char *body;
     struct message *next;
@@ -12,6 +17,8 @@ typedef struct message_queue {
     message_t first;
     message_t last;
 } *message_queue_t;
+
+void fill_timestamp(char *timestamp, size_t length);
 
 message_t create_message(const char *sender_name, const char *body);
 void delete_message(message_t message);

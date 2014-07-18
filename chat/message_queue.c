@@ -6,8 +6,15 @@
 #include "safe_functions.h"
 #include "message_queue.h"
 
+void fill_timestamp(char *timestamp, size_t length) {
+    time_t timep = safe_time(NULL);
+    struct tm *tm = safe_localtime(&timep);
+    safe_strftime(timestamp, length, TIME_FORMAT, tm);
+}
+
 message_t create_message(const char *sender_name, const char *body) {
     message_t message = (message_t) safe_malloc(sizeof(struct message));
+    fill_timestamp(message->timestamp, sizeof(message->timestamp));
     message->sender_name = safe_strdup(sender_name);
     message->body = safe_strdup(body);
     message->next = NULL;
