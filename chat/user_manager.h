@@ -2,12 +2,14 @@
 #define USER_MANAGER_H
 
 #include <stdbool.h>
+#include "message_queue.h"
 
 #define MAX_N_OF_USERS 100
 
 typedef struct user {
     int fd;
     char *name;
+    message_queue_t queue;
 } *user_t;
 
 user_t create_user(int fd, const char *name);

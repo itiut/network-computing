@@ -12,18 +12,6 @@
 const short PORT = 8090;
 const int LISTENQ = 10;
 
-/* void make_socket_nonblocking(int sockfd) { */
-/*     int current_flags = fcntl(sockfd, F_GETFL, 0); */
-/*     if (current_flags == -1) { */
-/*         perror("make_socket_nonbloking: fcntl(2), F_GETFL"); */
-/*         exit(EXIT_FAILURE); */
-/*     } */
-/*     if (fcntl(sockfd, F_SETFL, current_flags | O_NONBLOCK) == -1) { */
-/*         perror("make_socket_nonblocking: fcntl(2), F_SETFL"); */
-/*         exit(EXIT_FAILURE); */
-/*     } */
-/* } */
-
 struct sockaddr_in create_server_addr(short port) {
     struct sockaddr_in addr = {
         .sin_family = AF_INET,
@@ -42,6 +30,34 @@ int create_listened_socket(struct sockaddr_in addr) {
     safe_bind(sockfd, (struct sockaddr *) &addr, sizeof(addr));
     safe_listen(sockfd, LISTENQ);
     return sockfd;
+}
+
+void send_message(int epoll_fd, user_t receiver) {
+    message_t message = pop_message(receiver->queue);
+    send(receiver->fd, message->body, strlen(message->body), 0);
+    delete_message(message);
+
+    if (receiver->queue->n_of_messages == 0) {
+        struct epoll_event e;
+        e.events = EPOLLIN;
+        e.data.fd = receiver->fd;
+        safe_epoll_ctl(epoll_fd, EPOLL_CTL_MOD, receiver->fd, &e);
+    }
+}
+
+void enqueue_message_to_others(int epoll_fd, user_manager_t manager, user_t sender, const char *body) {
+    for (int i = 0; i < manager->n_of_users; i++) {
+        user_t user = manager->users[i];
+        if (user == sender) {
+            continue;
+        }
+        push_message(user->queue, sender->name, body);
+
+        struct epoll_event e;
+        e.events = EPOLLIN | EPOLLOUT;
+        e.data.fd = user->fd;
+        safe_epoll_ctl(epoll_fd, EPOLL_CTL_MOD, user->fd, &e);
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -82,22 +98,26 @@ int main(int argc, char *argv[]) {
             int fd = events[i].data.fd;
             user_t user = find_user_by_fd(manager, fd);
 
-            char buffer[1024];
-            memset(buffer, 0, sizeof(buffer));
-            int ret = read(fd, buffer, sizeof(buffer));
-            if (ret == -1) {
-                perror("read(2)");
-                exit(EXIT_FAILURE);
-            }
-            if (ret == 0) {
-                /* connection was closed by remote host */
-                printf("user %s left.\n", user->name);
-                safe_epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
-                delete_user_by_fd(manager, fd);
-                continue;
-            }
+            if (events[i].events & EPOLLOUT) {
+                send_message(epoll_fd, user);
+            } else if (events[i].events & EPOLLIN) {
+                char buffer[1024];
+                memset(buffer, 0, sizeof(buffer));
+                int ret = read(fd, buffer, sizeof(buffer));
+                if (ret == -1) {
+                    perror("read(2)");
+                    exit(EXIT_FAILURE);
+                } else if (ret == 0) {
+                    /* connection was closed by remote host */
+                    printf("user %s left.\n", user->name);
+                    safe_epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
+                    delete_user_by_fd(manager, fd);
+                    continue;
+                }
+                printf("%s:%s", user->name, buffer);
 
-            printf("%s:%s", user->name, buffer);
+                enqueue_message_to_others(epoll_fd, manager, user, buffer);
+            }
         }
     }
     return 0;

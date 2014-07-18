@@ -1,17 +1,20 @@
 #include <string.h>
 #include <stdlib.h>
 #include "safe_functions.h"
+#include "message_queue.h"
 #include "user_manager.h"
 
 user_t create_user(int fd, const char *name) {
     user_t user = (user_t) safe_malloc(sizeof(struct user));
     user->fd = fd;
     user->name = safe_strdup(name);
+    user->queue = create_message_queue();
     return user;
 }
 
 void delete_user(user_t user) {
     free(user->name);
+    delete_message_queue(user->queue);
     free(user);
 }
 
@@ -46,10 +49,10 @@ int delete_user_by_fd(user_manager_t manager, int fd) {
         /* cannot found the user with the fd */
         return -1;
     }
-
     delete_user(manager->users[i]);
     while (i < manager->n_of_users - 1) {
         manager->users[i] = manager->users[i + 1];
+        i++;
     }
     manager->n_of_users--;
     return 1;
