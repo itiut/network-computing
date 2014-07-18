@@ -66,11 +66,12 @@ int main(int argc, char *argv[]) {
 
                 if (user->state == CONNECTED) {
                     /* set user name */
-                    if (strlen(buffer) == 0) {
+                    char *name = rtrim_after_first_space(ltrim(buffer));
+                    if (strlen(name) == 0) {
                         continue;
                     }
                     user->state = JOINED;
-                    user->name = strdup(rtrim_after_first_space(ltrim(buffer)));
+                    user->name = strdup(name);
                     /* welcome message */
                     printf("welcome %s\n", user->name);
                     continue;
