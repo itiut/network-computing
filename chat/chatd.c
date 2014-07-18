@@ -37,9 +37,11 @@ int main(int argc, char *argv[]) {
 
         for (int i = 0; i < n_of_fds; i++) {
             int fd = events[i].data.fd;
-            if (process_listened_fds(epoll_fd, listened_fds, fd, manager)) {
+            if (is_listened_fds(fd, listened_fds)) {
+                create_connection(fd, epoll_fd, manager);
                 continue;
             }
+
             user_t user = find_user_by_fd(manager, fd);
             if (events[i].events & EPOLLOUT) {
                 send_message(epoll_fd, user);
@@ -93,20 +95,21 @@ int create_listened_socket(struct addrinfo *ai) {
     return sockfd;
 }
 
-bool process_listened_fds(int epoll_fd, struct fdinfo *listened_fds, int fd, user_manager_t manager) {
+bool is_listened_fds(int fd, struct fdinfo *listened_fds) {
     for (struct fdinfo *fi = listened_fds; fi != NULL; fi = fi->next) {
         if (fi->fd == fd) {
-            struct sockaddr_storage client_addr;
-            socklen_t len = sizeof(client_addr);
-            int connection_fd = safe_accept(fi->fd, (struct sockaddr *) &client_addr, &len);
-            safe_epoll_ctl1(epoll_fd, EPOLL_CTL_ADD, connection_fd, EPOLLIN);
-
-            add_user(manager, connection_fd, "aaa");
-            printf("user %s joined.\n", "aaa");
             return true;
         }
     }
     return false;
+}
+
+void create_connection(int listened_fd, int epoll_fd, user_manager_t manager) {
+    struct sockaddr_storage client_addr;
+    socklen_t len = sizeof(client_addr);
+    int connection_fd = safe_accept(listened_fd, (struct sockaddr *) &client_addr, &len);
+    safe_epoll_ctl1(epoll_fd, EPOLL_CTL_ADD, connection_fd, EPOLLIN);
+    add_user(manager, connection_fd);
 }
 
 void send_message(int epoll_fd, user_t receiver) {

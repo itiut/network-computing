@@ -19,7 +19,8 @@ typedef struct fdinfo {
 struct fdinfo *create_listened_sockets(const char *port);
 int create_listened_socket(struct addrinfo *ai);
 
-bool process_listened_fds(int epoll_fd, struct fdinfo *listened_fds, int fd, user_manager_t manager);
+bool is_listened_fds(int fd, struct fdinfo *listend_fds);
+void create_connection(int listened_fd, int epoll_fd, user_manager_t manager);
 
 void send_message(int epoll_fd, user_t receiver);
 
