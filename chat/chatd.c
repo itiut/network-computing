@@ -3,6 +3,7 @@
 #endif
 
 #include <arpa/inet.h>
+#include <ctype.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <stdio.h>
@@ -69,7 +70,7 @@ int main(int argc, char *argv[]) {
                         continue;
                     }
                     user->state = JOINED;
-                    user->name = strdup(buffer);
+                    user->name = strdup(rtrim_after_first_space(ltrim(buffer)));
                     /* welcome message */
                     printf("welcome %s\n", user->name);
                     continue;
@@ -187,10 +188,23 @@ void print_message(message_t message) {
     printf(MESSAGE_FORMAT, message->timestamp, message->sender_name, message->body);
 }
 
-void rtrim_newlines(char *string) {
+char *ltrim(char *string) {
+    while (isspace(*string)) {
+        string++;
+    }
+    return string;
+}
+
+char *rtrim_newlines(char *string) {
     char *last = string + strlen(string) - 1;
     while (*last == '\n' || *last == '\r') {
         last--;
     }
     *(last + 1) = '\0';
+    return string;
+}
+
+char *rtrim_after_first_space(char *string) {
+    strtok(string, " ");
+    return string;
 }
