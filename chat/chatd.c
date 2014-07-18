@@ -38,10 +38,7 @@ void send_message(int epoll_fd, user_t receiver) {
     delete_message(message);
 
     if (receiver->queue->n_of_messages == 0) {
-        struct epoll_event e;
-        e.events = EPOLLIN;
-        e.data.fd = receiver->fd;
-        safe_epoll_ctl(epoll_fd, EPOLL_CTL_MOD, receiver->fd, &e);
+        safe_epoll_ctl1(epoll_fd, EPOLL_CTL_MOD, receiver->fd, EPOLLIN);
     }
 }
 
@@ -52,11 +49,7 @@ void enqueue_message_to_others(int epoll_fd, user_manager_t manager, user_t send
             continue;
         }
         push_message(user->queue, sender->name, body);
-
-        struct epoll_event e;
-        e.events = EPOLLIN | EPOLLOUT;
-        e.data.fd = user->fd;
-        safe_epoll_ctl(epoll_fd, EPOLL_CTL_MOD, user->fd, &e);
+        safe_epoll_ctl1(epoll_fd, EPOLL_CTL_MOD, user->fd, EPOLLIN | EPOLLOUT);
     }
 }
 
@@ -65,11 +58,7 @@ int main(int argc, char *argv[]) {
     int listen_fd = create_listened_socket(server_addr);
 
     int epoll_fd = safe_epoll_create1(0);
-    struct epoll_event event;
-    memset(&event, 0, sizeof(event));
-    event.events = EPOLLIN;
-    event.data.fd = listen_fd;
-    safe_epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &event);
+    safe_epoll_ctl1(epoll_fd, EPOLL_CTL_ADD, listen_fd, EPOLLIN);
 
     const int MAX_EVENTS = 10;
     struct epoll_event events[MAX_EVENTS];
@@ -84,11 +73,7 @@ int main(int argc, char *argv[]) {
                 struct sockaddr_in client_addr;
                 socklen_t len = sizeof(client_addr);
                 int connection_fd = safe_accept(listen_fd, (struct sockaddr *) &client_addr, &len);
-
-                struct epoll_event e;
-                e.events = EPOLLIN;
-                e.data.fd = connection_fd;
-                safe_epoll_ctl(epoll_fd, EPOLL_CTL_ADD, connection_fd, &e);
+                safe_epoll_ctl1(epoll_fd, EPOLL_CTL_ADD, connection_fd, EPOLLIN);
 
                 add_user(manager, connection_fd, "aaa");
                 printf("user %s joined.\n", "aaa");

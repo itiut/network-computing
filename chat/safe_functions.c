@@ -90,6 +90,14 @@ void safe_epoll_ctl(int epfd, int op, int fd, struct epoll_event *event) {
     }
 }
 
+void safe_epoll_ctl1(int epfd, int op, int fd, uint32_t events) {
+    struct epoll_event event;
+    memset(&event, 0, sizeof(event));
+    event.events = events;
+    event.data.fd = fd;
+    safe_epoll_ctl(epfd, op, fd, &event);
+}
+
 int safe_epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout) {
     int n_of_fds = epoll_wait(epfd, events, maxevents, timeout);
     if (n_of_fds == -1) {

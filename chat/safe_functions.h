@@ -17,6 +17,7 @@ int safe_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 
 int safe_epoll_create1(int flags);
 void safe_epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);
+void safe_epoll_ctl1(int epfd, int op, int fd, uint32_t events);
 int safe_epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);
 
 #endif /* SAFE_FUNCTIONS_H */
