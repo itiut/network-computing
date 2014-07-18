@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < n_of_fds; i++) {
             int fd = events[i].data.fd;
             if (is_listened_fds(fd, listened_fds)) {
+                /* user connects */
                 create_connection(fd, epoll_fd, manager);
                 continue;
             }
@@ -46,11 +47,36 @@ int main(int argc, char *argv[]) {
             if (events[i].events & EPOLLOUT) {
                 send_message(epoll_fd, user);
             } else if (events[i].events & EPOLLIN) {
-                message_t message = receive_message_from(user);
-                if (message == NULL) {
+                char buffer[MAX_RECEIVE_BYTES];
+                memset(buffer, 0, sizeof(buffer));
+                int bytes = safe_read(fd, buffer, sizeof(buffer));
+
+                if (bytes == 0) {
+                    /* disconnect */
+                    if (user->state == JOINED) {
+                        /* farewell message */
+                        printf("farewell %s\n", user->name);
+                    }
                     close_connection(epoll_fd, manager, user);
                     continue;
                 }
+
+                rtrim_newlines(buffer);
+
+                if (user->state == CONNECTED) {
+                    /* set user name */
+                    if (strlen(buffer) == 0) {
+                        continue;
+                    }
+                    user->state = JOINED;
+                    user->name = strdup(buffer);
+                    /* welcome message */
+                    printf("welcome %s\n", user->name);
+                    continue;
+                }
+
+                /* JOINED */
+                message_t message = create_message(user->name, buffer);
                 enqueue_message_to_others(epoll_fd, manager, user, message);
                 print_message(message);
                 delete_message(message);
