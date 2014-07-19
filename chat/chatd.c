@@ -175,7 +175,7 @@ void enqueue_message_to(int epoll_fd, user_t receiver, message_t message) {
 }
 
 message_t create_system_message(user_t user, const char *action) {
-    char *buffer = (char *) safe_malloc(strlen(user->name) + strlen(action) + 3);
+    char *buffer = (char *) safe_malloc(strlen(user->name) + strlen(action) + 3); /* space, dot, \0 */
     sprintf(buffer, "%s %s.", user->name, action);
     message_t message = create_message("[system]", buffer);
     free(buffer);
