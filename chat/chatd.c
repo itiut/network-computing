@@ -81,7 +81,8 @@ int main(int argc, char *argv[]) {
             if (message == NULL) {
                 continue;
             }
-            enqueue_message_to_others(epoll_fd, manager, user, message);
+            enqueue_message_to_all(epoll_fd, manager, message);
+            /* enqueue_message_to_others(epoll_fd, manager, user, message); */
             print_message(message);
             delete_message(message);
         }
@@ -157,6 +158,12 @@ void send_message(int epoll_fd, user_t receiver) {
 void close_connection(int epoll_fd, user_manager_t manager, user_t user) {
     safe_epoll_ctl(epoll_fd, EPOLL_CTL_DEL, user->fd, NULL);
     delete_user_by_fd(manager, user->fd);
+}
+
+void enqueue_message_to_all(int epoll_fd, user_manager_t manager, message_t message) {
+    for (int i = 0; i < manager->n_of_users; i++) {
+        enqueue_message_to(epoll_fd, manager->users[i], message);
+    }
 }
 
 void enqueue_message_to_others(int epoll_fd, user_manager_t manager, user_t sender, message_t message) {

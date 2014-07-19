@@ -24,8 +24,8 @@ void create_connection(int listened_fd, int epoll_fd, user_manager_t manager);
 
 void send_message(int epoll_fd, user_t receiver);
 
-message_t receive_message_from(user_t sender);
 void close_connection(int epoll_fd, user_manager_t manager, user_t user);
+void enqueue_message_to_all(int epoll_fd, user_manager_t manager, message_t message);
 void enqueue_message_to_others(int epoll_fd, user_manager_t manager, user_t sender, message_t message);
 void enqueue_message_to(int epoll_fd, user_t receiver, message_t message);
 
