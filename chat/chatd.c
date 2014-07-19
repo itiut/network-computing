@@ -38,44 +38,46 @@ int main(int argc, char *argv[]) {
 
         for (int i = 0; i < n_of_fds; i++) {
             int fd = events[i].data.fd;
+            /* listened sockets */
             if (is_listened_fds(fd, listened_fds)) {
-                /* user connects */
                 create_connection(fd, epoll_fd, manager);
                 continue;
             }
 
             user_t user = find_user_by_fd(manager, fd);
-            message_t message = NULL;
-
+            /* EPOLLOUT */
             if (events[i].events & EPOLLOUT) {
                 send_message(epoll_fd, user);
-            } else if (events[i].events & EPOLLIN) {
-                char buffer[MAX_RECEIVE_BYTES];
-                memset(buffer, 0, sizeof(buffer));
-                int bytes = safe_read(fd, buffer, sizeof(buffer));
+                continue;
+            }
 
-                if (bytes == 0) {
-                    /* connection was closed by remote host */
-                    if (user->state == JOINED) {
-                        message = create_system_message(user, "left");
+            /* EPOLLIN */
+            message_t message = NULL;
+            char buffer[MAX_RECEIVE_BYTES];
+            memset(buffer, 0, sizeof(buffer));
+            int bytes = safe_read(fd, buffer, sizeof(buffer));
+
+            if (bytes == 0) {
+                /* connection was closed by remote host */
+                if (user->state == JOINED) {
+                    message = create_system_message(user, "left");
+                }
+                close_connection(epoll_fd, manager, user);
+            } else {
+
+                rtrim_newlines(buffer);
+
+                if (user->state == CONNECTED) {
+                    char *name = rtrim_after_first_space(ltrim(buffer));
+                    if (strlen(name) == 0) {
+                        continue;
                     }
-                    close_connection(epoll_fd, manager, user);
-                } else {
+                    user->state = JOINED;
+                    user->name = strdup(name);
 
-                    rtrim_newlines(buffer);
-
-                    if (user->state == CONNECTED) {
-                        char *name = rtrim_after_first_space(ltrim(buffer));
-                        if (strlen(name) == 0) {
-                            continue;
-                        }
-                        user->state = JOINED;
-                        user->name = strdup(name);
-
-                        message = create_system_message(user, "joined");
-                    } else if (user->state == JOINED) {
-                        message = create_message(user->name, buffer);
-                    }
+                    message = create_system_message(user, "joined");
+                } else if (user->state == JOINED) {
+                    message = create_message(user->name, buffer);
                 }
             }
 
