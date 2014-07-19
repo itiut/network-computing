@@ -45,6 +45,8 @@ int main(int argc, char *argv[]) {
             }
 
             user_t user = find_user_by_fd(manager, fd);
+            message_t message = NULL;
+
             if (events[i].events & EPOLLOUT) {
                 send_message(epoll_fd, user);
             } else if (events[i].events & EPOLLIN) {
@@ -53,36 +55,36 @@ int main(int argc, char *argv[]) {
                 int bytes = safe_read(fd, buffer, sizeof(buffer));
 
                 if (bytes == 0) {
-                    /* disconnect */
+                    /* connection was closed by remote host */
                     if (user->state == JOINED) {
-                        /* farewell message */
-                        printf("farewell %s\n", user->name);
+                        message = create_system_message(user, "left");
                     }
                     close_connection(epoll_fd, manager, user);
-                    continue;
-                }
+                } else {
 
-                rtrim_newlines(buffer);
+                    rtrim_newlines(buffer);
 
-                if (user->state == CONNECTED) {
-                    /* set user name */
-                    char *name = rtrim_after_first_space(ltrim(buffer));
-                    if (strlen(name) == 0) {
-                        continue;
+                    if (user->state == CONNECTED) {
+                        char *name = rtrim_after_first_space(ltrim(buffer));
+                        if (strlen(name) == 0) {
+                            continue;
+                        }
+                        user->state = JOINED;
+                        user->name = strdup(name);
+
+                        message = create_system_message(user, "joined");
+                    } else if (user->state == JOINED) {
+                        message = create_message(user->name, buffer);
                     }
-                    user->state = JOINED;
-                    user->name = strdup(name);
-                    /* welcome message */
-                    printf("welcome %s\n", user->name);
-                    continue;
                 }
-
-                /* JOINED */
-                message_t message = create_message(user->name, buffer);
-                enqueue_message_to_others(epoll_fd, manager, user, message);
-                print_message(message);
-                delete_message(message);
             }
+
+            if (message == NULL) {
+                continue;
+            }
+            enqueue_message_to_others(epoll_fd, manager, user, message);
+            print_message(message);
+            delete_message(message);
         }
     }
     return 0;
@@ -153,18 +155,6 @@ void send_message(int epoll_fd, user_t receiver) {
     }
 }
 
-message_t receive_message_from(user_t sender) {
-    char buffer[MAX_RECEIVE_BYTES];
-    memset(buffer, 0, sizeof(buffer));
-    int bytes = safe_read(sender->fd, buffer, sizeof(buffer));
-    if (bytes == 0) {
-        /* connection was closed by remote host */
-        return NULL;
-    }
-    rtrim_newlines(buffer);
-    return create_message(sender->name, buffer);
-}
-
 void close_connection(int epoll_fd, user_manager_t manager, user_t user) {
     safe_epoll_ctl(epoll_fd, EPOLL_CTL_DEL, user->fd, NULL);
     delete_user_by_fd(manager, user->fd);
@@ -183,6 +173,14 @@ void enqueue_message_to_others(int epoll_fd, user_manager_t manager, user_t send
 void enqueue_message_to(int epoll_fd, user_t receiver, message_t message) {
     push_message(receiver->queue, message);
     safe_epoll_ctl1(epoll_fd, EPOLL_CTL_MOD, receiver->fd, EPOLLIN | EPOLLOUT);
+}
+
+message_t create_system_message(user_t user, const char *action) {
+    char *buffer = (char *) safe_malloc(strlen(user->name) + strlen(action) + 3);
+    sprintf(buffer, "%s %s.", user->name, action);
+    message_t message = create_message("[system]", buffer);
+    free(buffer);
+    return message;
 }
 
 void print_message(message_t message) {
