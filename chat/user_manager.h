@@ -34,4 +34,6 @@ int add_user(user_manager_t manager, int fd);
 int delete_user_by_fd(user_manager_t manager, int fd);
 user_t find_user_by_fd(user_manager_t manager, int fd);
 
+bool user_joins(user_t user, const char *user_name);
+
 #endif /* USER_MANAGER_H */

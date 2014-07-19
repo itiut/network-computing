@@ -64,17 +64,14 @@ int main(int argc, char *argv[]) {
                 }
                 close_connection(epoll_fd, manager, user);
             } else {
-
+                /* receive message successfully */
                 rtrim_newlines(buffer);
 
                 if (user->state == CONNECTED) {
-                    char *name = rtrim_after_first_space(ltrim(buffer));
-                    if (strlen(name) == 0) {
+                    char *user_name = rtrim_after_first_space(ltrim(buffer));
+                    if (!user_joins(user, user_name)) {
                         continue;
                     }
-                    user->state = JOINED;
-                    user->name = strdup(name);
-
                     message = create_system_message(user, "joined");
                 } else if (user->state == JOINED) {
                     message = create_message(user->name, buffer);

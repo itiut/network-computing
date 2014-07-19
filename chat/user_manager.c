@@ -2,8 +2,9 @@
 #define _GNU_SOURCE
 #endif
 
-#include <string.h>
+#include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include "safe_functions.h"
 #include "message_queue.h"
 #include "user_manager.h"
@@ -72,4 +73,13 @@ user_t find_user_by_fd(user_manager_t manager, int fd) {
         }
     }
     return NULL;
+}
+
+bool user_joins(user_t user, const char *user_name) {
+    if (strlen(user_name) == 0) {
+        return false;
+    }
+    user->state = JOINED;
+    user->name = strdup(user_name);
+    return true;
 }
