@@ -30,8 +30,7 @@ int main(int argc, char *argv[]) {
     }
 
     initscr();
-    start_color();
-    init_pair(1, COLOR_RED, COLOR_BLACK);
+    init_color_pairs();
     WINDOW *input_win = newwin(INPUT_WINDOW_HEIGHT, COLS, LINES - INPUT_WINDOW_HEIGHT - 1, 0);
     scrollok(input_win, TRUE);
     WINDOW *output_win = newwin(LINES - INPUT_WINDOW_HEIGHT - 1, COLS, 0, 0);
@@ -87,6 +86,9 @@ void *receiver_thread(void *args) {
     WINDOW *output_win = ((struct thread_args *) args)->output_win;
     free(args);
 
+    int color_number;
+    struct colorinfo *colorinfo = create_colorinfo(&color_number);
+
     while (1) {
         char buffer[CLIENT_MAX_RECEIVE_BYTES];
         memset(buffer, 0, sizeof(buffer));
@@ -96,20 +98,82 @@ void *receiver_thread(void *args) {
         }
 
         char *timestamp, *sender_name, *body;
-        short color;
-        parse_message(rtrim_newlines(buffer), &timestamp, &sender_name, &body, &color);
+        scan_message(rtrim_newlines(buffer), &timestamp, &sender_name, &body);
+        unsigned long color_pair = get_color_pair_by_user_name(&colorinfo, sender_name, &color_number);
 
-        print_message_with_color(output_win, timestamp, sender_name, body, color);
+        print_message_with_color(output_win, timestamp, sender_name, body, color_pair);
         wrefresh(output_win);
+
+        /* delete left user */
+        if (strcmp(sender_name, "[system]:") == 0) {
+            char *command = next_tok(body);
+            if (strcmp(command, "left.") == 0) {
+                colorinfo_delete_user(&colorinfo, body);
+            }
+        }
     }
 }
 
-void parse_message(char *buffer, char **timestamp, char **sender_name, char **body, short *color) {
+void init_color_pairs() {
+    start_color();
+    if (n_of_colors > COLOR_PAIRS) {
+        n_of_colors = COLOR_PAIRS;
+    }
+    for (int i = 0; i < n_of_colors; i++) {
+        init_pair(i + 1, colors[i], COLOR_BLACK);
+    }
+}
+
+struct colorinfo *create_colorinfo(int *color_number) {
+    *color_number = 0;
+    struct colorinfo *colorinfo = NULL;
+    colorinfo_add_user(&colorinfo, "[system]", color_number);
+    return colorinfo;
+}
+
+void colorinfo_add_user(struct colorinfo **colorinfo, const char *user_name, int *color_number) {
+    struct colorinfo *ci = (struct colorinfo *) safe_malloc(sizeof(struct colorinfo));
+    ci->user_name = strdup(user_name);
+    ci->color_pair = get_color_pair(*color_number);
+    ci->next = *colorinfo;
+    *colorinfo = ci;
+
+    update_color_number(color_number);
+}
+
+void colorinfo_delete_user(struct colorinfo **colorinfo, const char *user_name) {
+    size_t length = strlen(user_name);
+    for (struct colorinfo *prev = NULL, *ci = *colorinfo; ci != NULL; prev = ci, ci = ci->next) {
+        if (strncmp(ci->user_name, user_name, length) != 0) {
+            continue;
+        }
+        if (prev == NULL) {
+            *colorinfo = ci->next;
+        } else {
+            prev->next = ci->next;
+        }
+        free(ci->user_name);
+        free(ci);
+        return;
+    }
+}
+
+unsigned long get_color_pair(int num) {
+    if (num <= n_of_colors) {
+        return COLOR_PAIR(num) | A_BOLD;
+    } else {
+        exit(EXIT_FAILURE);
+    }
+}
+
+void update_color_number(int *num) {
+    *num = (*num + 1) % n_of_colors;
+}
+
+void scan_message(char *buffer, char **timestamp, char **sender_name, char **body) {
     *timestamp = buffer;
     *sender_name = next_tok(*timestamp);
     *body = next_tok(*sender_name);
-
-    *color = 1;
 }
 
 char *next_tok(char *p) {
@@ -118,10 +182,21 @@ char *next_tok(char *p) {
     return next;
 }
 
-void print_message_with_color(WINDOW *win, const char *timestamp, const char *sender_name, const char *body, short color) {
+unsigned long get_color_pair_by_user_name(struct colorinfo **colorinfo, const char *user_name, int *color_number) {
+    for (struct colorinfo *ci = *colorinfo; ci != NULL; ci = ci->next) {
+        if (strcmp(ci->user_name, user_name) == 0) {
+            return ci->color_pair;
+        }
+    }
+
+    colorinfo_add_user(colorinfo, user_name, color_number);
+    return (*colorinfo)->color_pair;
+}
+
+void print_message_with_color(WINDOW *win, const char *timestamp, const char *sender_name, const char *body, unsigned long color) {
     wprintw(win, "%s ", timestamp);
-    wattron(win, COLOR_PAIR(color));
+    wattron(win, color);
     wprintw(win, "%s ", sender_name);
-    wattroff(win, COLOR_PAIR(color));
+    wattroff(win, color);
     wprintw(win, "%s\n", body);
 }
