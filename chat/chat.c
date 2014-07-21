@@ -44,9 +44,14 @@ int main(int argc, char *argv[]) {
     pthread_create(&tid, NULL, receiver_thread, (void *) thread_args);
 
     /* sender */
+    bool joined = false;
     while (1) {
         wclear(input_win);
-        mvwprintw(input_win, 0, 0, "> ");
+        if (joined) {
+            mvwprintw(input_win, 0, 0, "> ");
+        } else {
+            mvwprintw(input_win, 0, 0, "Enter your name> ");
+        }
         wrefresh(input_win);
 
         char buffer[CLIENT_MAX_SEND_BYTES];
@@ -57,6 +62,15 @@ int main(int argc, char *argv[]) {
         if (length == 0) {
             continue;
         }
+
+        if (!joined) {
+            char *name = ltrim(rtrim_after_first_space(buffer));
+            if (strlen(name) == 0) {
+                continue;
+            }
+            joined = true;
+        }
+
         safe_write(connection_fd, buffer, length);
     }
 }
