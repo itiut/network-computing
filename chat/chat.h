@@ -17,4 +17,9 @@ void usage();
 int create_connected_socket(const char *host, const char *port);
 void *receiver_thread(void *args);
 
+void parse_message(char *buffer, char **timestamp, char **sender_name, char **body, short *color);
+char *next_tok(char *p);
+
+void print_message_with_color(WINDOW *win, const char *timestamp, const char *sender_name, const char *body, short color);
+
 #endif /* CHAT_H */

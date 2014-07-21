@@ -30,6 +30,8 @@ int main(int argc, char *argv[]) {
     }
 
     initscr();
+    start_color();
+    init_pair(1, COLOR_RED, COLOR_BLACK);
     WINDOW *input_win = newwin(INPUT_WINDOW_HEIGHT, COLS, LINES - INPUT_WINDOW_HEIGHT - 1, 0);
     scrollok(input_win, TRUE);
     WINDOW *output_win = newwin(LINES - INPUT_WINDOW_HEIGHT - 1, COLS, 0, 0);
@@ -92,7 +94,34 @@ void *receiver_thread(void *args) {
         if (bytes == 0) {
             exit(EXIT_SUCCESS);
         }
-        wprintw(output_win, "%s\n", rtrim_newlines(buffer));
+
+        char *timestamp, *sender_name, *body;
+        short color;
+        parse_message(rtrim_newlines(buffer), &timestamp, &sender_name, &body, &color);
+
+        print_message_with_color(output_win, timestamp, sender_name, body, color);
         wrefresh(output_win);
     }
+}
+
+void parse_message(char *buffer, char **timestamp, char **sender_name, char **body, short *color) {
+    *timestamp = buffer;
+    *sender_name = next_tok(*timestamp);
+    *body = next_tok(*sender_name);
+
+    *color = 1;
+}
+
+char *next_tok(char *p) {
+    char *next = strchr(p, ' ');
+    *next++ = '\0';
+    return next;
+}
+
+void print_message_with_color(WINDOW *win, const char *timestamp, const char *sender_name, const char *body, short color) {
+    wprintw(win, "%s ", timestamp);
+    wattron(win, COLOR_PAIR(color));
+    wprintw(win, "%s ", sender_name);
+    wattroff(win, COLOR_PAIR(color));
+    wprintw(win, "%s\n", body);
 }
