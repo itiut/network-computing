@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
 
             /* EPOLLIN */
             message_t message = NULL;
-            char buffer[MAX_RECEIVE_BYTES];
+            char buffer[SERVER_MAX_RECEIVE_BYTES];
             memset(buffer, 0, sizeof(buffer));
             int bytes = safe_read(fd, buffer, sizeof(buffer));
 

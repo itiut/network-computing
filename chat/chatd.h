@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include "user_manager.h"
 
-const int MAX_RECEIVE_BYTES = 1024;
+const int SERVER_MAX_RECEIVE_BYTES = 1024;
 
 typedef struct fdinfo {
     int fd;
