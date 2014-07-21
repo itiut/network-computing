@@ -21,7 +21,13 @@ const int LISTENQ = 10;
 const char *MESSAGE_FORMAT = "%s %s: %s\n"; /* HH:MM:SS name: body */
 
 int main(int argc, char *argv[]) {
-    struct fdinfo *listened_fds = create_listened_sockets("8090");
+    if (argc != 2) {
+        printf("Usage: %s port\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    const char *port = argv[1];
+    struct fdinfo *listened_fds = create_listened_sockets(port);
 
     int epoll_fd = safe_epoll_create1(0);
     for (struct fdinfo *fi = listened_fds; fi != NULL; fi = fi->next) {
