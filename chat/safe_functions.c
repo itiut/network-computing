@@ -93,13 +93,13 @@ void safe_listen(int sockfd, int backlog) {
 }
 
 int safe_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen) {
-    int ret = accept(sockfd, addr, addrlen);
-    if (ret == -1) {
+    int accepted_sockfd = accept(sockfd, addr, addrlen);
+    if (accepted_sockfd == -1) {
         perror("safe_accept: accept(2)");
         close(sockfd);
         exit(EXIT_FAILURE);
     }
-    return ret;
+    return accepted_sockfd;
 }
 
 int safe_epoll_create1(int flags) {
