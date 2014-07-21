@@ -32,8 +32,4 @@ void enqueue_message_to(int epoll_fd, user_t receiver, message_t message);
 message_t create_system_message(user_t user, const char *action);
 void print_message(message_t message);
 
-char *ltrim(char *string);
-char *rtrim_newlines(char *string);
-char *rtrim_after_first_space(char *string);
-
 #endif /* CHATD_H */

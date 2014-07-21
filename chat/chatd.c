@@ -3,7 +3,6 @@
 #endif
 
 #include <arpa/inet.h>
-#include <ctype.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <stdio.h>
@@ -12,6 +11,7 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 #include "safe_functions.h"
+#include "string_ext.h"
 #include "user_manager.h"
 #include "chatd.h"
 
@@ -191,25 +191,4 @@ message_t create_system_message(user_t user, const char *action) {
 
 void print_message(message_t message) {
     printf(MESSAGE_FORMAT, message->timestamp, message->sender_name, message->body);
-}
-
-char *ltrim(char *string) {
-    while (isspace(*string)) {
-        string++;
-    }
-    return string;
-}
-
-char *rtrim_newlines(char *string) {
-    char *last = string + strlen(string) - 1;
-    while (*last == '\n' || *last == '\r') {
-        last--;
-    }
-    *(last + 1) = '\0';
-    return string;
-}
-
-char *rtrim_after_first_space(char *string) {
-    strtok(string, " ");
-    return string;
 }
