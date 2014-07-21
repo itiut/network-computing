@@ -7,7 +7,7 @@ OBJECTS := $(SOURCES:.c=.o)
 # TAR := /tmp/$(TAR_DIR).tar.gz
 
 CC := gcc
-CFLAGS := -Wall -O2 -std=c99 -lpthread
+CFLAGS := -Wall -O2 -std=c99 -lcurses -lpthread
 
 .SUFFIXES: .c .o
 

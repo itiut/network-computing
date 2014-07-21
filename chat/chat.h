@@ -1,11 +1,16 @@
 #ifndef CHAT_H
 #define CHAT_H
 
+#include <curses.h>
+
 const int CLIENT_MAX_SEND_BYTES = 1024;
 const int CLIENT_MAX_RECEIVE_BYTES = 1500;
 
+const int INPUT_WINDOW_HEIGHT = 2;
+
 struct thread_args {
     int sockfd;
+    WINDOW* output_win;
 };
 
 void usage();
