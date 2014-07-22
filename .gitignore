@@ -4,3 +4,5 @@ daytime/daytime
 httpd/httpd_fork
 httpd/httpd_select
 httpd/httpd_thread
+chat/chatd
+chat/chat
