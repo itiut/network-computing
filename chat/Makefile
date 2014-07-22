@@ -3,8 +3,8 @@ TARGET_SOURCES := $(addsuffix .c, $(TARGETS))
 TARGET_OBJECTS := $(TARGET_SOURCES:.c=.o)
 SOURCES := $(filter-out $(TARGET_SOURCES), $(wildcard *.c))
 OBJECTS := $(SOURCES:.c=.o)
-# TAR_DIR := httpd
-# TAR := /tmp/$(TAR_DIR).tar.gz
+TAR_DIR := chat
+TAR := /tmp/$(TAR_DIR).tar.gz
 
 CC := gcc
 CFLAGS := -Wall -O2 -std=c99 -lcurses -lpthread
@@ -24,8 +24,8 @@ $(TARGETS): $(TARGET_OBJECTS) $(OBJECTS)
 clean:
 	rm -f $(TARGETS) $(TARGET_OBJECTS) $(OBJECTS)
 
-# tar:
-# 	make clean
-# 	rm -f $(TAR)
-# 	cd ../;	tar czf $(TAR) $(TAR_DIR)
-# 	@echo "$(TAR) craeted."
+tar:
+	make clean
+	rm -f $(TAR)
+	cd ../;	tar czf $(TAR) $(TAR_DIR)
+	@echo "$(TAR) craeted."
